@@ -1,0 +1,78 @@
+---
+# tasks file for docker-engine
+
+- name: Check distribution & version
+  fail:
+    msg: Distribution "{{ ansible_distribution }}" is not supported by this role
+  when: ansible_distribution != 'Ubuntu' or ansible_distribution_version|version_compare(14.04, '<')
+
+- name: Install 'software-properties-common'
+  apt:
+    name: software-properties-common
+    state: latest
+    update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time }}"
+
+- name: Add updated python repository 
+  apt_repository:
+    repo: "{{ python_update_repo }}"
+    state: present
+    update_cache: yes
+
+- name: Upgrade python2.7
+  apt:
+    name: python2.7
+    state: latest
+
+- name: Install 'linux-image-extra-{{ ansible_kernel }}'
+  apt:
+    name: "linux-image-extra-{{ ansible_kernel }}"
+    state: latest
+
+- name: Install 'linux-image-extra-virtual'
+  apt:
+    name: linux-image-extra-virtual
+    state: latest
+
+- name: Install 'apt-transport-https'
+  apt:
+    name: apt-transport-https
+    state: latest
+
+- name: Install 'ca-certficates'
+  apt:
+    name: ca-certificates
+    state: latest
+
+- name: Install 'curl'
+  apt:
+    name: curl
+    state: latest
+
+- name: Install Docker repository key
+  apt_key:
+    id: "{{ docker_gpg_key_id }}"
+    url: "{{ docker_gpg_key_url }}"
+    state: present
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "{{ docker_apt_repo }}"
+    update_cache: yes
+    state: present
+
+- name: Install 'docker-ce'
+  apt:
+    name: docker-ce
+    state: latest
+
+- name: Create docker group
+  group:
+    name: docker
+    state: present
+
+- name: Start Docker on boot
+  service:
+    name: docker
+    enabled: yes
+    state: started

@@ -1,0 +1,6 @@
+---
+- hosts: minis
+  remote_user: root
+  roles:
+    - { role: docker-engine }
+
