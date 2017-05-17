@@ -77,6 +77,33 @@
     enabled: yes
     state: started
 
+- name: Install 'nfs-common'
+  apt:
+    name: nfs-common
+    state: latest
+
+- name: Check service docker-volume-netshare
+  shell: dpkg-query -l 'docker-volume-netshare'
+  ignore_errors: true
+  register: is_docker_volume_netshare
+
+- name: Download ContainX/docker-volume-netshare
+  get_url:
+    url: https://github.com/ContainX/docker-volume-netshare/releases/download/v0.32/docker-volume-netshare_0.32_amd64.deb
+    dest: /tmp/docker-volume-netshare
+  when: is_docker_volume_netshare|failed
+
+- name: Install 'docker-volume-netshare'
+  apt:
+    deb: /tmp/docker-volume-netshare
+  when: is_docker_volume_netshare|failed
+
+- name: Start docker-volume-netshare on boot
+  service:
+    name: docker-volume-netshare
+    enabled: yes
+    state: started
+
 - name: Modify grub to adjust memory and swap accounting
   lineinfile:
     dest: /etc/default/grub
